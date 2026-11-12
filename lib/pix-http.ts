@@ -42,7 +42,10 @@ export async function chargePix(input: {
 }) {
   const credentials = readAxxonCredentials();
   if (!credentials) {
-    throw new AxxonPayError("O PIX não pode ser gerado.", 503);
+    throw new AxxonPayError(
+      "As chaves da Axxon Pay não estão no servidor. Defina AXXONPAY_API_KEY e AXXONPAY_API_SECRET.",
+      503,
+    );
   }
 
   const charge = await createPixCharge(credentials, {

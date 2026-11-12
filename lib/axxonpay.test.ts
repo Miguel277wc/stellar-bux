@@ -35,7 +35,7 @@ test("o login envia apiKey e apiSecret para a Axxon Pay", async () => {
   });
 });
 
-test("o PIX faz login e cria o pagamento direto em centavos", async () => {
+test("o PIX cria o pagamento direto em centavos, sem campos extras", async () => {
   const calls: Array<{ url: string; headers: Headers; body: unknown }> = [];
   const fetchImpl: typeof fetch = async (input, init) => {
     const headers = new Headers(init?.headers);
@@ -66,7 +66,7 @@ test("o PIX faz login e cria o pagamento direto em centavos", async () => {
       amountCents: 790,
       description: "Pedido Galaxy Bux",
       customer: {
-        name: "Stellar_01",
+        name: "Ana Silva",
         email: "ana@email.com",
         phone: "(11) 98888-7777",
         document: "088.521.753-50",
@@ -75,18 +75,22 @@ test("o PIX faz login e cria o pagamento direto em centavos", async () => {
     fetchImpl,
   );
 
-  assert.equal(calls[1]?.url, "https://api.axxonpay.com.br/api/v1/direct/payment");
-  assert.equal(calls[1]?.headers.get("axxon-gateway-publickey"), "pk_test_example");
-  assert.equal(calls[1]?.headers.get("axxon-gateway-secretkey"), "sk_test_example");
-  assert.equal((calls[1]?.body as { amount: number }).amount, 790);
-  assert.equal((calls[1]?.body as { paymentMethod: string }).paymentMethod, "pix");
-  assert.deepEqual((calls[1]?.body as { items: unknown }).items, [
-    { title: "Pedido Galaxy Bux", unitPrice: 790, quantity: 1 },
-  ]);
-  assert.equal(
-    (calls[1]?.body as { customer: { document: { type: string; number: string } } }).customer.document.number,
-    "08852175350",
-  );
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0]?.url, "https://api.axxonpay.com.br/api/v1/direct/payment");
+  assert.equal(calls[0]?.headers.get("axxon-gateway-publickey"), "pk_test_example");
+  assert.equal(calls[0]?.headers.get("axxon-gateway-secretkey"), "sk_test_example");
+  assert.equal(calls[0]?.headers.get("authorization"), null);
+  assert.deepEqual(calls[0]?.body, {
+    amount: 790,
+    paymentMethod: "pix",
+    description: "Pedido Galaxy Bux",
+    customer: {
+      name: "Ana Silva",
+      email: "ana@email.com",
+      phone: "11988887777",
+      document: { number: "08852175350", type: "cpf" },
+    },
+  });
   assert.equal(charge.qrCode, "00020126PIX");
   assert.equal(charge.view, "pending");
   assert.equal(charge.receiverName, "Recebedor Axxon");
@@ -157,6 +161,71 @@ test("resposta sem QR repassa a mensagem da Axxon Pay", async () => {
       ),
     (error: unknown) => error instanceof AxxonPayError && /processar seu pagamento/.test(error.message),
   );
+});
+
+test("o código Pix em pix.qrcode também vale", async () => {
+  const fetchImpl: typeof fetch = async () =>
+    new Response(
+      JSON.stringify({
+        data: { id: "pay_2", status: "PENDING", pix: { qrcode: "00020126PIX" } },
+      }),
+      { status: 201 },
+    );
+
+  const charge = await createPixCharge(
+    credentials,
+    {
+      amountCents: 790,
+      description: "Pedido Galaxy Bux",
+      customer: {
+        name: "Ana Silva",
+        email: "ana@email.com",
+        phone: "11988887777",
+        document: "08852175350",
+      },
+    },
+    fetchImpl,
+  );
+  assert.equal(charge.qrCode, "00020126PIX");
+});
+
+test("401 no pagamento faz o login e tenta de novo com o token", async () => {
+  const calls: string[] = [];
+  const fetchImpl: typeof fetch = async (input, init) => {
+    calls.push(String(input));
+    if (String(input).endsWith("/login")) {
+      return new Response(JSON.stringify({ token: "jwt-da-api" }), { status: 200 });
+    }
+    const headers = new Headers(init?.headers);
+    if (!headers.get("authorization")) {
+      return new Response(JSON.stringify({ errorMessage: "Token não fornecido" }), { status: 401 });
+    }
+    return new Response(
+      JSON.stringify({ data: { id: "pay_3", status: "PENDING", qrCode: "00020126PIX" } }),
+      { status: 201 },
+    );
+  };
+
+  const charge = await createPixCharge(
+    credentials,
+    {
+      amountCents: 790,
+      description: "Pedido Galaxy Bux",
+      customer: {
+        name: "Ana Silva",
+        email: "ana@email.com",
+        phone: "11988887777",
+        document: "08852175350",
+      },
+    },
+    fetchImpl,
+  );
+  assert.deepEqual(calls, [
+    "https://api.axxonpay.com.br/api/v1/direct/payment",
+    "https://api.axxonpay.com.br/api/v1/api-auth/login",
+    "https://api.axxonpay.com.br/api/v1/direct/payment",
+  ]);
+  assert.equal(charge.id, "pay_3");
 });
 
 test("credencial recusada vira erro da Axxon Pay", async () => {

@@ -1,0 +1,23 @@
+:root {
+  color-scheme: dark;
+  font-family: system-ui, sans-serif;
+  background: #07060f;
+  color: #f4f1ff;
+}
+
+body {
+  margin: 0;
+}
+
+a {
+  color: #d7c4ff;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}

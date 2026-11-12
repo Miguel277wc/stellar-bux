@@ -156,18 +156,53 @@ export function providerMessage(payload: unknown): string | null {
   return null;
 }
 
+const QR_KEYS = new Set(["qrcode", "qr_code", "pixcopiaecola", "emv", "brcode"]);
+
+export function findPixCode(payload: unknown): string | null {
+  const seen = new Set<unknown>();
+  const walk = (node: unknown): string | null => {
+    if (!node || typeof node !== "object" || seen.has(node)) return null;
+    seen.add(node);
+    if (Array.isArray(node)) {
+      for (const item of node) {
+        const found = walk(item);
+        if (found) return found;
+      }
+      return null;
+    }
+    for (const [key, value] of Object.entries(node as Record<string, unknown>)) {
+      if (typeof value === "string" && QR_KEYS.has(key.toLowerCase()) && value.trim().length >= 8) {
+        return value.trim();
+      }
+      const found = walk(value);
+      if (found) return found;
+    }
+    return null;
+  };
+  return walk(payload);
+}
+
+function chargeId(payload: unknown): string | null {
+  if (!payload || typeof payload !== "object") return null;
+  const root = payload as { id?: unknown; data?: { id?: unknown } };
+  const id = root.data?.id ?? root.id;
+  return typeof id === "string" && id.trim() ? id.trim() : null;
+}
+
 function asCharge(payload: unknown, fallbackAmountCents: number): PixCharge {
   const root = (payload ?? {}) as { data?: RawCharge } & RawCharge;
   const data = root.data && typeof root.data === "object" ? root.data : root;
-  if (!data.id || !data.qrCode) {
+  const qrCode = findPixCode(payload);
+  const id = chargeId(payload);
+  if (!id || !qrCode) {
     throw new AxxonPayError(providerMessage(payload) || "A Axxon Pay não devolveu o PIX.", 502);
   }
   return {
-    id: data.id,
+    id,
     status: data.status ?? "PENDING",
     view: paymentView(data.status),
     amountCents: fallbackAmountCents,
-    qrCode: data.qrCode,
+    qrCode,
     receiverName: data.customer?.name ?? data.customerName ?? null,
   };
 }
@@ -190,44 +225,56 @@ export async function createPixCharge(
     throw new AxxonPayError("O PIX da Axxon Pay só é gerado a partir de R$ 6,00.", 400);
   }
 
-  await loginAxxon(credentials, fetchImpl);
-
-  const response = await fetchImpl(`${baseUrl(credentials)}/api/v1/direct/payment`, {
-    method: "POST",
-    headers: gatewayHeaders(credentials),
-    body: JSON.stringify({
-      amount: input.amountCents,
-      paymentMethod: "pix",
-      currency: "BRL",
-      environment: "br",
-      description: pixDescription(input.description),
-      customer: {
-        name: input.customer.name,
-        email: input.customer.email,
-        phone: onlyDigits(input.customer.phone),
-        document: {
-          number: onlyDigits(input.customer.document),
-          type: documentType(input.customer.document),
-        },
+  const paymentBody = JSON.stringify({
+    amount: input.amountCents,
+    paymentMethod: "pix",
+    description: pixDescription(input.description),
+    customer: {
+      name: input.customer.name,
+      email: input.customer.email,
+      phone: onlyDigits(input.customer.phone),
+      document: {
+        number: onlyDigits(input.customer.document),
+        type: documentType(input.customer.document),
       },
-      items: [
-        {
-          title: pixDescription(input.description),
-          unitPrice: input.amountCents,
-          quantity: 1,
-        },
-      ],
-      ...(input.postbackUrl ? { postbackUrl: input.postbackUrl } : {}),
-      ...(input.metadata ? { metadata: input.metadata } : {}),
-    }),
+    },
+    ...(input.postbackUrl ? { postbackUrl: input.postbackUrl } : {}),
+    ...(input.metadata ? { metadata: input.metadata } : {}),
   });
 
-  const payload = await response.json().catch(() => null);
+  const postPayment = (headers: Record<string, string>) =>
+    fetchImpl(`${baseUrl(credentials)}/api/v1/direct/payment`, {
+      method: "POST",
+      headers,
+      body: paymentBody,
+    });
+
+  let response = await postPayment(gatewayHeaders(credentials));
+  if (response.status === 401) {
+    const token = await loginAxxon(credentials, fetchImpl);
+    response = await postPayment({
+      ...gatewayHeaders(credentials),
+      Authorization: `Bearer ${token}`,
+    });
+  }
+
+  let payload = await response.json().catch(() => null);
   if (!response.ok) {
     throw new AxxonPayError(
       providerMessage(payload) || `Axxon Pay respondeu ${response.status}.`,
       response.status,
     );
+  }
+
+  if (!findPixCode(payload) && chargeId(payload)) {
+    const followUp = await fetchImpl(
+      `${baseUrl(credentials)}/api/v1/payments/${encodeURIComponent(chargeId(payload) as string)}`,
+      { method: "GET", headers: gatewayHeaders(credentials) },
+    );
+    if (followUp.ok) {
+      const fetched = await followUp.json().catch(() => null);
+      if (findPixCode(fetched)) payload = fetched;
+    }
   }
 
   return asCharge(payload, input.amountCents);
