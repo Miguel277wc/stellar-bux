@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Stellar Bux",
-  description: "Checkout de Robux com PIX",
+  description: "Loja de Robux. O pagamento abre no checkout da Axxon Pay.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

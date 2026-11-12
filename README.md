@@ -24,7 +24,7 @@ O SKU de uma conta é `a{índice do jogo}-{nível de 1 a 5}`. O texto de cada co
 
 ## Checkout
 
-A página `/checkout` pede nome, CPF, celular e o pacote, e `POST /api/checkout` recalcula o total e cria um PIX na Axxon Pay. O servidor entra com `POST https://api.axxonpay.com.br/api/v1/api-auth/login` (`apiKey` e `apiSecret`) e gera a cobrança em `POST /api/v1/direct/payment`, com `paymentMethod: pix` e o valor em centavos. As chaves vão nos cabeçalhos `axxon-gateway-publickey` e `axxon-gateway-secretkey`.
+A página inicial mostra os pacotes de Robux. O botão de compra abre o checkout hospedado da Axxon Pay, um link por pacote. `POST /api/checkout` continua disponível para uma cobrança direta autenticada. O servidor entra com `POST https://api.axxonpay.com.br/api/v1/api-auth/login` (`apiKey` e `apiSecret`) e gera a cobrança em `POST /api/v1/direct/payment`, com `paymentMethod: pix` e o valor em centavos. As chaves vão nos cabeçalhos `axxon-gateway-publickey` e `axxon-gateway-secretkey`.
 
 ```json
 {
