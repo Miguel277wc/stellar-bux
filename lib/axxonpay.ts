@@ -284,7 +284,7 @@ export async function getPixCharge(
   credentials: AxxonCredentials,
   id: string,
   fetchImpl: FetchLike = fetch,
-): Promise<{ id: string; status: string; view: PaymentView; receiverName: string | null }> {
+): Promise<{ id: string; status: string; view: PaymentView; receiverName: string | null; qrCode: string | null }> {
   const response = await fetchImpl(`${baseUrl(credentials)}/api/v1/payments/${encodeURIComponent(id)}`, {
     method: "GET",
     headers: gatewayHeaders(credentials),
@@ -304,6 +304,7 @@ export async function getPixCharge(
     status: data.status ?? "PENDING",
     view: paymentView(data.status),
     receiverName: data.customer?.name ?? data.customerName ?? null,
+    qrCode: findPixCode(body) ?? findPixCode(data),
   };
 }
 

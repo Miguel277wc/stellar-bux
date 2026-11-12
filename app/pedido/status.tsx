@@ -5,6 +5,9 @@ import { useEffect, useState } from "react";
 type StatusResponse = {
   status?: string;
   error?: string;
+  qr_code?: string | null;
+  copia_cola?: string | null;
+  receiver_name?: string | null;
 };
 
 const label: Record<string, string> = {
@@ -17,6 +20,9 @@ const label: Record<string, string> = {
 export function PedidoStatus({ id }: { id: string }) {
   const [status, setStatus] = useState(id ? "pending" : "");
   const [error, setError] = useState(id ? "" : "Pedido sem pagamento.");
+  const [qrCode, setQrCode] = useState("");
+  const [copiaCola, setCopiaCola] = useState("");
+  const [receiver, setReceiver] = useState("");
 
   useEffect(() => {
     if (!id) return;
@@ -29,7 +35,11 @@ export function PedidoStatus({ id }: { id: string }) {
         setError(body.error || "Não foi possível consultar o PIX.");
         return;
       }
+      setError("");
       setStatus(body.status || "pending");
+      setQrCode(body.qr_code || "");
+      setCopiaCola(body.copia_cola || "");
+      setReceiver(body.receiver_name || "");
     };
 
     const timer = window.setInterval(() => void look(), 5000);
@@ -42,9 +52,13 @@ export function PedidoStatus({ id }: { id: string }) {
 
   return (
     <main style={{ maxWidth: 480, margin: "0 auto", padding: 24 }}>
-      <h1>Pedido</h1>
-      <p>{id}</p>
+      <h1>Pague o PIX</h1>
       <p>{label[status] || status}</p>
+      {receiver ? <p>Recebedor: {receiver}</p> : null}
+      {qrCode ? <img src={qrCode} alt="QR Code PIX" width={280} height={280} /> : null}
+      {copiaCola ? (
+        <textarea readOnly value={copiaCola} rows={4} style={{ width: "100%" }} aria-label="PIX copia e cola" />
+      ) : null}
       {error ? <p role="alert">{error}</p> : null}
       <p>
         <a href="/checkout">Voltar ao checkout</a>

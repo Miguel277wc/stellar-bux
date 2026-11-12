@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import QRCode from "qrcode";
 import { AxxonPayError, getPixCharge, readAxxonCredentials } from "@/lib/axxonpay";
 import { pixUnavailable } from "@/lib/pix-http";
 
@@ -15,11 +16,16 @@ export async function GET(request: Request) {
 
   try {
     const payment = await getPixCharge(credentials, id);
+    const qrCode = payment.qrCode
+      ? await QRCode.toDataURL(payment.qrCode, { margin: 1, width: 280 })
+      : null;
     return NextResponse.json({
       id: payment.id,
       status: payment.view,
       provider_status: payment.status,
       receiver_name: payment.receiverName,
+      copia_cola: payment.qrCode,
+      qr_code: qrCode,
     });
   } catch (error) {
     if (error instanceof AxxonPayError && error.status === 404) {
