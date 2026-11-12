@@ -74,6 +74,10 @@ export default function CheckoutPage() {
         }),
       });
       const body = (await response.json()) as PixResponse;
+      if (response.status === 401) {
+        setError("Entre na loja para gerar o PIX.");
+        return;
+      }
       if (!response.ok || !body.copia_cola) {
         setError(body.error || "O PIX não pode ser gerado.");
         return;

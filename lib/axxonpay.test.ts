@@ -8,6 +8,7 @@ import {
   paymentIdFromWebhook,
   paymentView,
   verifyAxxonSignature,
+  webhookIsTrusted,
 } from "./axxonpay";
 
 const credentials = {
@@ -246,5 +247,8 @@ test("a assinatura do webhook usa o corpo cru", () => {
 
   assert.equal(verifyAxxonSignature(raw, `t=${timestamp},v1=${signature}`, secret, 1760450000), true);
   assert.equal(verifyAxxonSignature(raw, `t=${timestamp},v1=${signature}`, secret, 1760450401), false);
+  assert.equal(webhookIsTrusted(raw, `t=${timestamp},v1=${signature}`, undefined, 1760450000), false);
+  assert.equal(webhookIsTrusted(raw, `t=${timestamp},v1=${signature}`, "  ", 1760450000), false);
+  assert.equal(webhookIsTrusted(raw, `t=${timestamp},v1=${signature}`, secret, 1760450000), true);
   assert.equal(paymentIdFromWebhook(JSON.parse(raw)), "pay_1");
 });

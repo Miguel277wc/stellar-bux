@@ -308,6 +308,17 @@ export async function getPixCharge(
   };
 }
 
+export function webhookIsTrusted(
+  rawBody: string,
+  header: string | null,
+  secret: string | undefined,
+  nowSeconds = Date.now() / 1000,
+): boolean {
+  const value = secret?.trim();
+  if (!value) return false;
+  return verifyAxxonSignature(rawBody, header, value, nowSeconds);
+}
+
 export function verifyAxxonSignature(
   rawBody: string,
   header: string | null,

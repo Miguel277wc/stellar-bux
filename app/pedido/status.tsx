@@ -57,7 +57,7 @@ export function PedidoStatus({ id }: { id: string }) {
         <div className="secure">Pagamento seguro</div>
       </header>
       <section className="card pix-panel" style={{ maxWidth: 480, margin: "0 auto" }}>
-        <h1>Escaneie o QR Code para pagar</h1>
+        <h1>{qrCode ? "Escaneie o QR Code para pagar" : "Pedido"}</h1>
         <p className={status === "approved" ? "done" : "wait"}>{label[status] || status}</p>
         {receiver ? <p className="hint">Recebedor: {receiver}</p> : null}
         {qrCode ? <img src={qrCode} alt="QR Code PIX" width={220} height={220} /> : null}

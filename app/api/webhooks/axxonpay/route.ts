@@ -3,16 +3,15 @@ import {
   getPixCharge,
   paymentIdFromWebhook,
   readAxxonCredentials,
-  verifyAxxonSignature,
+  webhookIsTrusted,
 } from "@/lib/axxonpay";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
   const raw = await request.text();
-  const secret = process.env.AXXONPAY_WEBHOOK_SECRET?.trim();
-  if (secret && !verifyAxxonSignature(raw, request.headers.get("axxon-signature"), secret)) {
-    return NextResponse.json({ error: "Assinatura inválida." }, { status: 400 });
+  if (!webhookIsTrusted(raw, request.headers.get("axxon-signature"), process.env.AXXONPAY_WEBHOOK_SECRET)) {
+    return NextResponse.json({ error: "Assinatura obrigatória." }, { status: 401 });
   }
 
   let payload: unknown;

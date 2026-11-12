@@ -1,6 +1,7 @@
 import QRCode from "qrcode";
 import { NextResponse } from "next/server";
 import { AxxonPayError, createPixCharge, readAxxonCredentials, type PixCustomer } from "./axxonpay";
+import { CheckoutRejected } from "./charge-guard";
 
 const GENERIC_PROVIDER_ERROR =
   "Não foi possível processar seu pagamento. Por favor, verifique os dados informados ou contate o suporte.";
@@ -12,26 +13,36 @@ export function explainPixFailure(message: string): string {
   return message;
 }
 
+export function privateJson(body: unknown, status = 200) {
+  return NextResponse.json(body, {
+    status,
+    headers: { "cache-control": "private, no-store" },
+  });
+}
+
 export function pixErrorResponse(error: unknown) {
+  if (error instanceof CheckoutRejected) {
+    return privateJson({ error: error.message }, error.status);
+  }
   if (error instanceof AxxonPayError && (error.status === 401 || error.status === 403)) {
-    return NextResponse.json(
+    return privateJson(
       {
         error:
           "A Axxon Pay recusou as chaves. Copie a chave pública e a secreta em Integrações → Credenciais da API. O par de exemplo da documentação não gera PIX.",
       },
-      { status: 502 },
+      502,
     );
   }
   if (error instanceof AxxonPayError && error.status >= 400 && error.status < 500) {
-    return NextResponse.json({ error: explainPixFailure(error.message) }, { status: 400 });
+    return privateJson({ error: explainPixFailure(error.message) }, 400);
   }
   if (error instanceof AxxonPayError && error.message && error.message !== "O PIX não pode ser gerado.") {
-    return NextResponse.json({ error: explainPixFailure(error.message) }, { status: 502 });
+    return privateJson({ error: explainPixFailure(error.message) }, 502);
   }
   if (error instanceof Error && /SKU|Quantidade|pelo menos um item/.test(error.message)) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return privateJson({ error: error.message }, 400);
   }
-  return NextResponse.json({ error: "O PIX não pode ser gerado." }, { status: 502 });
+  return privateJson({ error: "O PIX não pode ser gerado." }, 502);
 }
 
 export async function chargePix(input: {
@@ -70,5 +81,5 @@ export async function chargePix(input: {
 }
 
 export function pixUnavailable() {
-  return NextResponse.json({ error: "O PIX não pode ser gerado." }, { status: 503 });
+  return privateJson({ error: "O PIX não pode ser gerado." }, 503);
 }
