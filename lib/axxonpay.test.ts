@@ -80,6 +80,9 @@ test("o PIX faz login e cria o pagamento direto em centavos", async () => {
   assert.equal(calls[1]?.headers.get("axxon-gateway-secretkey"), "sk_test_example");
   assert.equal((calls[1]?.body as { amount: number }).amount, 790);
   assert.equal((calls[1]?.body as { paymentMethod: string }).paymentMethod, "pix");
+  assert.deepEqual((calls[1]?.body as { items: unknown }).items, [
+    { title: "Pedido Galaxy Bux", unitPrice: 790, quantity: 1 },
+  ]);
   assert.equal(
     (calls[1]?.body as { customer: { document: { type: string; number: string } } }).customer.document.number,
     "08852175350",
@@ -94,6 +97,66 @@ test("FINISHED e PAID contam como pago", () => {
   assert.equal(paymentView("paid"), "approved");
   assert.equal(paymentView("PENDING"), "pending");
   assert.equal(paymentView("REFUNDED"), "refunded");
+});
+
+test("cobrança abaixo de R$ 6,00 nem chega na Axxon Pay", async () => {
+  const fetchImpl: typeof fetch = async () => {
+    throw new Error("não deveria chamar a API");
+  };
+  await assert.rejects(
+    () =>
+      createPixCharge(
+        credentials,
+        {
+          amountCents: 395,
+          description: "Pedido Galaxy Bux",
+          customer: {
+            name: "Ana Silva",
+            email: "ana@email.com",
+            phone: "11988887777",
+            document: "08852175350",
+          },
+        },
+        fetchImpl,
+      ),
+    (error: unknown) =>
+      error instanceof AxxonPayError && error.status === 400 && /R\$ 6,00/.test(error.message),
+  );
+});
+
+test("resposta sem QR repassa a mensagem da Axxon Pay", async () => {
+  const fetchImpl: typeof fetch = async (input) => {
+    if (String(input).endsWith("/login")) {
+      return new Response(JSON.stringify({ token: "jwt" }), { status: 200 });
+    }
+    return new Response(
+      JSON.stringify({
+        success: false,
+        errorMessage:
+          "Não foi possível processar seu pagamento. Por favor, verifique os dados informados ou contate o suporte.",
+      }),
+      { status: 200 },
+    );
+  };
+
+  await assert.rejects(
+    () =>
+      createPixCharge(
+        credentials,
+        {
+          amountCents: 790,
+          description: "Pedido Galaxy Bux",
+          customer: {
+            name: "Ana Silva",
+            email: "ana@email.com",
+            phone: "11988887777",
+            document: "08852175350",
+          },
+        },
+        fetchImpl,
+      ),
+    (error: unknown) => error instanceof AxxonPayError && /processar seu pagamento/.test(error.message),
+  );
 });
 
 test("credencial recusada vira erro da Axxon Pay", async () => {

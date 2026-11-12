@@ -30,14 +30,16 @@ O SKU de uma conta é `a{índice do jogo}-{nível de 1 a 5}`. O texto de cada co
 {
   "items": [{ "sku": "r1000", "quantity": 1 }],
   "customer": {
+    "name": "Ana Silva",
     "email": "ana@email.com",
     "phone": "11988887777",
+    "document": "08852175350",
     "roblox_username": "Stellar_01"
   }
 }
 ```
 
-O cliente informa e-mail, telefone com DDD e usuário do Roblox. A descrição do PIX é sempre `Pedido Galaxy Bux`. A resposta traz `receiver_name`, o nome do recebedor que vem na cobrança, para bater com o que o banco exibe. A Axxon Pay exige CPF ou CNPJ. Se o cliente não enviar `customer.document`, o servidor usa `AXXONPAY_CUSTOMER_DOCUMENT`. `AXXONPAY_CUSTOMER_NAME` completa o nome quando o usuário do Roblox não vier.
+O cliente informa nome e sobrenome, e-mail, telefone com DDD e usuário do Roblox. A descrição do PIX é sempre `Pedido Galaxy Bux`. A resposta traz `receiver_name`, o nome do recebedor que vem na cobrança, para bater com o que o banco exibe. A Axxon Pay exige CPF ou CNPJ válido. Nome de uma palavra, telefone com o 55 na frente, CPF inválido ou total abaixo de R$ 6,00 fazem a Axxon responder que não foi possível processar o pagamento. O servidor recusa esses casos antes da cobrança. Se o cliente não enviar `customer.document`, o servidor usa `AXXONPAY_CUSTOMER_DOCUMENT`. `AXXONPAY_CUSTOMER_NAME` entra quando o pedido não traz `customer.name`.
 
 A resposta traz `qr_code`, o copia e cola em `copia_cola` e `checkout_url` vazio, porque o PIX nasce na própria loja. O pedido fica pendente até a Axxon Pay marcar `FINISHED` ou `PAID`, o que a loja devolve como `approved`. A página do pedido consulta `GET /api/pagamento/status?id=`, e o webhook `POST /api/webhooks/axxonpay` confirma o mesmo status na API antes de aceitar a notificação. Com `AXXONPAY_WEBHOOK_SECRET`, a assinatura `Axxon-Signature` é obrigatória.
 

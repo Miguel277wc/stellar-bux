@@ -1,6 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 
 export const AXXON_API_BASE = "https://api.axxonpay.com.br";
+export const PIX_MIN_CENTS = 600;
 
 const PAID_STATUSES = new Set(["FINISHED", "PAID", "APPROVED", "COMPLETED"]);
 const FAILED_STATUSES = new Set(["FAILED", "REFUSED", "CANCELLED", "CANCELED", "EXPIRED"]);
@@ -132,11 +133,25 @@ type RawCharge = {
   customerName?: string | null;
 };
 
+export function providerMessage(payload: unknown): string | null {
+  if (!payload || typeof payload !== "object") return null;
+  const body = payload as {
+    errorMessage?: unknown;
+    message?: unknown;
+    data?: { errorMessage?: unknown; message?: unknown };
+  };
+  const candidates = [body.errorMessage, body.message, body.data?.errorMessage, body.data?.message];
+  for (const candidate of candidates) {
+    if (typeof candidate === "string" && candidate.trim()) return candidate.trim();
+  }
+  return null;
+}
+
 function asCharge(payload: unknown, fallbackAmountCents: number): PixCharge {
   const root = (payload ?? {}) as { data?: RawCharge } & RawCharge;
   const data = root.data && typeof root.data === "object" ? root.data : root;
   if (!data.id || !data.qrCode) {
-    throw new AxxonPayError("A Axxon Pay não devolveu o PIX.", 502);
+    throw new AxxonPayError(providerMessage(payload) || "A Axxon Pay não devolveu o PIX.", 502);
   }
   return {
     id: data.id,
@@ -162,6 +177,9 @@ export async function createPixCharge(
   if (!Number.isInteger(input.amountCents) || input.amountCents < 1) {
     throw new AxxonPayError("O valor do PIX precisa ser um inteiro em centavos.", 400);
   }
+  if (input.amountCents < PIX_MIN_CENTS) {
+    throw new AxxonPayError("O PIX da Axxon Pay só é gerado a partir de R$ 6,00.", 400);
+  }
 
   await loginAxxon(credentials, fetchImpl);
 
@@ -183,16 +201,27 @@ export async function createPixCharge(
           type: documentType(input.customer.document),
         },
       },
+      items: [
+        {
+          title: input.description,
+          unitPrice: input.amountCents,
+          quantity: 1,
+        },
+      ],
       ...(input.postbackUrl ? { postbackUrl: input.postbackUrl } : {}),
       ...(input.metadata ? { metadata: input.metadata } : {}),
     }),
   });
 
+  const payload = await response.json().catch(() => null);
   if (!response.ok) {
-    throw new AxxonPayError(await readError(response), response.status);
+    throw new AxxonPayError(
+      providerMessage(payload) || `Axxon Pay respondeu ${response.status}.`,
+      response.status,
+    );
   }
 
-  return asCharge(await response.json(), input.amountCents);
+  return asCharge(payload, input.amountCents);
 }
 
 export async function getPixCharge(
