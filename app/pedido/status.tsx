@@ -51,18 +51,24 @@ export function PedidoStatus({ id }: { id: string }) {
   }, [id]);
 
   return (
-    <main style={{ maxWidth: 480, margin: "0 auto", padding: 24 }}>
-      <h1>Pague o PIX</h1>
-      <p>{label[status] || status}</p>
-      {receiver ? <p>Recebedor: {receiver}</p> : null}
-      {qrCode ? <img src={qrCode} alt="QR Code PIX" width={280} height={280} /> : null}
-      {copiaCola ? (
-        <textarea readOnly value={copiaCola} rows={4} style={{ width: "100%" }} aria-label="PIX copia e cola" />
-      ) : null}
-      {error ? <p role="alert">{error}</p> : null}
-      <p>
-        <a href="/checkout">Voltar ao checkout</a>
-      </p>
-    </main>
+    <div className="shop">
+      <header className="shop-top">
+        <div className="brand">Stellar Bux</div>
+        <div className="secure">Pagamento seguro</div>
+      </header>
+      <section className="card pix-panel" style={{ maxWidth: 480, margin: "0 auto" }}>
+        <h1>Escaneie o QR Code para pagar</h1>
+        <p className={status === "approved" ? "done" : "wait"}>{label[status] || status}</p>
+        {receiver ? <p className="hint">Recebedor: {receiver}</p> : null}
+        {qrCode ? <img src={qrCode} alt="QR Code PIX" width={220} height={220} /> : null}
+        {copiaCola ? (
+          <textarea className="pix-code" readOnly value={copiaCola} aria-label="Código Pix copia e cola" />
+        ) : null}
+        {error ? <p className="alert" role="alert">{error}</p> : null}
+        <a className="linkish" href="/checkout">
+          Voltar ao checkout
+        </a>
+      </section>
+    </div>
   );
 }
