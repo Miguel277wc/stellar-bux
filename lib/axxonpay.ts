@@ -67,6 +67,15 @@ export function onlyDigits(value: string): string {
   return value.replace(/\D/g, "");
 }
 
+export function pixDescription(value: string): string {
+  const cleaned = value
+    .normalize("NFC")
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .trim()
+    .replace(/\s+/g, " ");
+  return (cleaned || "Pedido").slice(0, 140);
+}
+
 export function documentType(document: string): "cpf" | "cnpj" {
   const digits = onlyDigits(document);
   if (digits.length === 14) return "cnpj";
@@ -191,7 +200,7 @@ export async function createPixCharge(
       paymentMethod: "pix",
       currency: "BRL",
       environment: "br",
-      description: input.description,
+      description: pixDescription(input.description),
       customer: {
         name: input.customer.name,
         email: input.customer.email,
@@ -203,7 +212,7 @@ export async function createPixCharge(
       },
       items: [
         {
-          title: input.description,
+          title: pixDescription(input.description),
           unitPrice: input.amountCents,
           quantity: 1,
         },

@@ -48,12 +48,16 @@ export function payerPhone(phone: string): string {
 }
 
 export function payerName(name: string): string {
-  const cleaned = name.trim().replace(/\s+/g, " ");
+  const cleaned = name
+    .normalize("NFC")
+    .replace(/[^\p{L}\s]/gu, " ")
+    .trim()
+    .replace(/\s+/g, " ");
   const parts = cleaned.split(" ").filter((part) => part.length >= 2);
   if (parts.length < 2) {
     throw new AxxonPayError("Informe nome e sobrenome para gerar o PIX.", 400);
   }
-  return parts.join(" ");
+  return parts.join(" ").slice(0, 200);
 }
 
 export function payerDocument(document: string): string {

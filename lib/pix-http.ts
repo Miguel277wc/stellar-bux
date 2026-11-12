@@ -7,7 +7,7 @@ const GENERIC_PROVIDER_ERROR =
 
 export function explainPixFailure(message: string): string {
   if (message.trim() === GENERIC_PROVIDER_ERROR) {
-    return "A Axxon Pay recusou o pagador. Confira nome e sobrenome, CPF válido, celular com DDD e um total de pelo menos R$ 6,00. Se os dados já estão certos, ative o PIX da conta ou troque a adquirente no painel da Axxon Pay.";
+    return "A Sicredi recusou a cobrança na Axxon Pay. Confira nome e sobrenome, CPF válido, celular com DDD e um total de pelo menos R$ 6,00. Se os dados já estão certos, o cadastro da Sicredi no painel está incompleto: chave Pix, certificado da API Pix, client id, client secret, cooperativa, posto e código do beneficiário.";
   }
   return message;
 }

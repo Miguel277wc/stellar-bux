@@ -11,6 +11,7 @@ test("telefone com 55 vira DDD mais número", () => {
 
 test("nome precisa de nome e sobrenome", () => {
   assert.equal(payerName("  Ana   Silva "), "Ana Silva");
+  assert.equal(payerName("João Silva_01"), "João Silva");
   assert.throws(() => payerName("Stellar_01"), AxxonPayError);
 });
 
@@ -40,6 +41,7 @@ test("a frase genérica da Axxon vira o que conferir", () => {
   const explained = explainPixFailure(
     "Não foi possível processar seu pagamento. Por favor, verifique os dados informados ou contate o suporte.",
   );
+  assert.match(explained, /Sicredi/);
   assert.match(explained, /nome e sobrenome/);
   assert.match(explained, /R\$ 6,00/);
 });
