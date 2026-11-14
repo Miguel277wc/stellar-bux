@@ -1,4 +1,8 @@
-import { AxxonPayError, onlyDigits, type PixCustomer } from "./axxonpay";
+import { FlevoPayError, type PixCustomer } from "./flevopay";
+
+export function onlyDigits(value: string): string {
+  return value.replace(/\D/g, "");
+}
 
 export type CheckoutCustomerInput = {
   email?: string;
@@ -14,18 +18,14 @@ export function pixCustomerFromInput(
 ): PixCustomer {
   const email = input.email?.trim() ?? "";
   const phone = onlyDigits(input.phone ?? "");
-  const document = onlyDigits(input.document?.trim() || env.AXXONPAY_CUSTOMER_DOCUMENT || "");
-  const name =
-    input.name?.trim() ||
-    input.roblox_username?.trim() ||
-    env.AXXONPAY_CUSTOMER_NAME?.trim() ||
-    "";
+  const document = onlyDigits(input.document?.trim() || "");
+  const name = input.name?.trim() || "";
 
   if (!email.includes("@")) {
-    throw new AxxonPayError("Informe um e-mail válido.", 400);
+    throw new FlevoPayError("Informe um e-mail válido.", 400);
   }
   if (!name) {
-    throw new AxxonPayError("Informe o usuário do Roblox.", 400);
+    throw new FlevoPayError("Informe nome e sobrenome.", 400);
   }
 
   return {
@@ -42,7 +42,7 @@ export function payerPhone(phone: string): string {
     digits = digits.slice(2);
   }
   if (digits.length !== 10 && digits.length !== 11) {
-    throw new AxxonPayError("Informe um telefone com DDD, como 11999999999.", 400);
+    throw new FlevoPayError("Informe um telefone com DDD, como 11999999999.", 400);
   }
   return digits;
 }
@@ -55,7 +55,7 @@ export function payerName(name: string): string {
     .replace(/\s+/g, " ");
   const parts = cleaned.split(" ").filter((part) => part.length >= 2);
   if (parts.length < 2) {
-    throw new AxxonPayError("Informe nome e sobrenome para gerar o PIX.", 400);
+    throw new FlevoPayError("Informe nome e sobrenome para gerar o PIX.", 400);
   }
   return parts.join(" ").slice(0, 200);
 }
@@ -63,14 +63,11 @@ export function payerName(name: string): string {
 export function payerDocument(document: string): string {
   const digits = onlyDigits(document);
   if (digits.length !== 11 && digits.length !== 14) {
-    throw new AxxonPayError(
-      "Informe o CPF do cliente ou configure AXXONPAY_CUSTOMER_DOCUMENT no servidor.",
-      400,
-    );
+    throw new FlevoPayError("Informe um CPF ou CNPJ válido.", 400);
   }
   const valid = digits.length === 11 ? isValidCpf(digits) : isValidCnpj(digits);
   if (!valid) {
-    throw new AxxonPayError(digits.length === 11 ? "O CPF informado não é válido." : "O CNPJ informado não é válido.", 400);
+    throw new FlevoPayError(digits.length === 11 ? "O CPF informado não é válido." : "O CNPJ informado não é válido.", 400);
   }
   return digits;
 }

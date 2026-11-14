@@ -1,19 +1,15 @@
-import { AxxonPayError, getPixCharge, readAxxonCredentials } from "@/lib/axxonpay";
-import { chargeCaller } from "@/lib/charge-caller";
+import { FlevoPayError, getPixCharge, readFlevoCredentials } from "@/lib/flevopay";
 import { pixUnavailable, privateJson } from "@/lib/pix-http";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  const caller = await chargeCaller(request);
-  if (caller instanceof Response) return caller;
-
   const id = new URL(request.url).searchParams.get("id")?.trim();
-  if (!id) {
+  if (!id || !/^[A-Za-z0-9_-]{1,40}$/.test(id)) {
     return privateJson({ error: "Informe o pagamento." }, 400);
   }
 
-  const credentials = readAxxonCredentials();
+  const credentials = readFlevoCredentials();
   if (!credentials) return pixUnavailable();
 
   try {
@@ -24,9 +20,9 @@ export async function GET(request: Request) {
       provider_status: payment.status,
     });
   } catch (error) {
-    if (error instanceof AxxonPayError && error.status === 404) {
+    if (error instanceof FlevoPayError && error.status === 404) {
       return privateJson({ error: "Pagamento não encontrado." }, 404);
     }
-    return privateJson({ error: "O PIX não pode ser gerado." }, 502);
+    return privateJson({ error: "Não foi possível consultar o PIX." }, 502);
   }
 }

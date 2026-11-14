@@ -1,7 +1,6 @@
 export const ROBUX_CENTS_PER_THOUSAND = 790;
 export const EXPRESS_DELIVERY_CENTS = 1290;
-export const ANTIFRAUD_FEE_CENTS = 1490;
-export const PIX_DESCRIPTION = "Pedido Galaxy Bux";
+export const PIX_DESCRIPTION = "Pedido Stellar Bux";
 
 export type CheckoutItem = {
   sku: string;
@@ -54,14 +53,5 @@ export function quoteCheckout(items: CheckoutItem[], express = false): Quote {
     description: PIX_DESCRIPTION,
     lines,
     express,
-  };
-}
-
-export function quoteUpsell(): Quote {
-  return {
-    amountCents: ANTIFRAUD_FEE_CENTS,
-    description: PIX_DESCRIPTION,
-    lines: [{ sku: "antifraud", quantity: 1, amountCents: ANTIFRAUD_FEE_CENTS }],
-    express: false,
   };
 }

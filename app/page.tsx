@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { quoteCheckout } from "@/lib/catalog";
-import { STORE_PACKS, packCheckoutUrl } from "@/lib/store-packs";
+
+const PACKS = [1000, 2500, 5000, 10000];
 
 const reais = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -23,14 +24,15 @@ export default function HomePage() {
         Entrega expressa por R$ 12,90
       </label>
       <section className="pack-grid">
-        {STORE_PACKS.map((pack) => {
-          const quote = quoteCheckout([{ sku: `r${pack.robux}`, quantity: 1 }], express);
+        {PACKS.map((robux) => {
+          const quote = quoteCheckout([{ sku: `r${robux}`, quantity: 1 }], express);
+          const href = `/checkout?robux=${robux}&express=${express ? "1" : "0"}`;
           return (
-            <article className="pack-card" key={pack.robux}>
-              <h2>{pack.robux.toLocaleString("pt-BR")} Robux</h2>
+            <article className="pack-card" key={robux}>
+              <h2>{robux.toLocaleString("pt-BR")} Robux</h2>
               <p className="price">{reais.format(quote.amountCents / 100)}</p>
-              <a className="buy" href={packCheckoutUrl(pack.robux, express)}>
-                Ir para o checkout
+              <a className="buy" href={href}>
+                Pagar com PIX
               </a>
             </article>
           );
