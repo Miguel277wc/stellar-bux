@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import lore from "@/lib/account-lore.json";
 import {
   EXPRESS_DELIVERY_CENTS,
@@ -73,8 +73,16 @@ export function StoreHome() {
 
   function buy(sku: string) {
     update(addItem(cart, sku));
-    setDrawer(true);
   }
+
+  useEffect(() => {
+    if (!drawer) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [drawer]);
 
   function changeQty(item: CartItem, quantity: number) {
     const product = productBySku(item.sku);
@@ -399,11 +407,13 @@ export function StoreHome() {
       {drawer ? (
         <div className="fixed inset-0 z-50" style={{ background: "rgba(0,0,0,.62)" }}>
           <button type="button" aria-label="Fechar carrinho" className="absolute inset-0" onClick={() => setDrawer(false)} />
-          <aside className="absolute top-0 right-0 flex h-full w-full max-w-md flex-col gap-4 overflow-auto border-l border-white/10 p-5" style={{ background: "#0c0618" }}>
-            <div className="flex items-center justify-between">
+          <aside className="absolute top-0 right-0 flex w-full max-w-md flex-col border-l border-white/10" style={{ background: "#0c0618", height: "100dvh", maxHeight: "100dvh", zIndex: 2 }}>
+            <div className="flex items-center justify-between px-5 pt-5">
               <h2 className="neon-title text-2xl">Carrinho</h2>
               <button type="button" className="btn-glass" onClick={() => setDrawer(false)}>Fechar</button>
             </div>
+            <div className="cart-scroll mt-4 min-h-0 flex-1 px-5 pb-8">
+            <div className="grid gap-4">
             {cart.items.length === 0 ? <p className="text-muted-foreground">Seu carrinho está vazio.</p> : null}
             {cart.items.map((item) => {
               const product = productBySku(item.sku);
@@ -461,6 +471,8 @@ export function StoreHome() {
             <Link className="btn-brand inline-flex h-11 items-center justify-center rounded-xl px-5 font-bold" href="/checkout">
               Ir para o pagamento
             </Link>
+            </div>
+            </div>
           </aside>
         </div>
       ) : null}
