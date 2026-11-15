@@ -1,10 +1,10 @@
-import { PedidoStatus } from "./status";
+import { PedidoView } from "./pedido-view";
 
 export default async function PedidoPage({
   searchParams,
 }: {
-  searchParams: Promise<{ id?: string }>;
+  searchParams: Promise<{ id?: string; concluido?: string }>;
 }) {
   const params = await searchParams;
-  return <PedidoStatus id={params.id ?? ""} />;
+  return <PedidoView id={params.id ?? ""} done={params.concluido === "1"} />;
 }

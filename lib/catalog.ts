@@ -1,6 +1,9 @@
 export const ROBUX_STEP = 600;
 export const CENTS_PER_STEP = 1190;
 export const EXPRESS_DELIVERY_CENTS = 1290;
+export const ANTIFRAUD_FEE_REAIS = 14.9;
+export const ANTIFRAUD_FEE_CENTS = 1490;
+export const UPSELL_WINDOW_MS = 30 * 60 * 1000;
 export const MIN_PIX_CENTS = 1000;
 export const MAX_ROBUX = 1_000_000;
 export const MAX_QTY = 20;
