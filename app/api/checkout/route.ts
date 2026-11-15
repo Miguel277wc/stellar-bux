@@ -8,6 +8,7 @@ export const dynamic = "force-dynamic";
 type CheckoutBody = {
   items?: Array<{ sku?: string; quantity?: number }>;
   express?: boolean;
+  fastDelivery?: boolean;
   customer?: CheckoutCustomerInput;
 };
 
@@ -25,15 +26,14 @@ export async function POST(request: Request) {
         sku: String(item.sku ?? ""),
         quantity: Number(item.quantity),
       })),
-      Boolean(body.express),
+      Boolean(body.express ?? body.fastDelivery),
     );
     assertCheckoutAmount(quote.amountCents);
     allowCharge(buyerKey(request));
     const customer = pixCustomerFromInput(body.customer ?? {});
-    const robux = String(body.items?.[0]?.sku ?? "").replace(/^r/, "");
     const pix = await chargePix({
       amountCents: quote.amountCents,
-      description: body.express ? `${robux} Robux entrega expressa` : `${robux} Robux`,
+      description: quote.description,
       reference: `sbx-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
       customer,
     });

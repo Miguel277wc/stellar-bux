@@ -95,24 +95,33 @@ export async function createPixCharge(
     throw new FlevoPayError("O PIX da FlevoPay exige pelo menos R$ 1,00.", 400);
   }
 
-  const response = await fetchImpl(`${baseUrl(credentials)}/api/v1/transaction`, {
-    method: "POST",
-    headers: headers(credentials),
-    body: JSON.stringify({
-      amount: input.amountCents,
-      description: input.description,
-      reference: input.reference,
-      source: "api_externa",
-      productHash: input.productHash || undefined,
-      postback_url: input.postbackUrl,
-      customer: {
-        name: input.customer.name,
-        email: input.customer.email,
-        document: input.customer.document,
-        phone: input.customer.phone,
-      },
-    }),
-  });
+  let response: Response;
+  try {
+    response = await fetchImpl(`${baseUrl(credentials)}/api/v1/transaction`, {
+      method: "POST",
+      headers: headers(credentials),
+      signal: AbortSignal.timeout(15000),
+      body: JSON.stringify({
+        amount: input.amountCents,
+        description: input.description,
+        reference: input.reference,
+        source: "api_externa",
+        productHash: input.productHash || undefined,
+        postback_url: input.postbackUrl,
+        customer: {
+          name: input.customer.name,
+          email: input.customer.email,
+          document: input.customer.document,
+          phone: input.customer.phone,
+        },
+      }),
+    });
+  } catch (error) {
+    if (error instanceof Error && error.name === "TimeoutError") {
+      throw new FlevoPayError("A FlevoPay demorou para responder. Tente gerar o PIX de novo.", 504);
+    }
+    throw error;
+  }
 
   const payload = await response.json().catch(() => null);
   if (!response.ok) {

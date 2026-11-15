@@ -18,9 +18,9 @@ npm run lint
 
 ## Catálogo
 
-O preço é R$ 11,90 a cada 600 Robux. Os pacotes são 600, 1.200, 1.800 e 2.400 Robux. O PIX leva o pacote e, se o cliente escolher, a entrega expressa de R$ 12,90. Pacotes de Robux ficam em `lib/catalog.ts`, no SKU `r{quantidade}`. A loja não vende Caixa Bux.
+O Robux custa R$ 11,90 a cada 600, de 600 até 1.000.000. Ofertas, contas e gift cards continuam com os preços da loja. A entrega expressa é opcional e custa R$ 12,90. O PIX só é gerado a partir de R$ 10,00. Pacotes de Robux ficam em `lib/catalog.ts`, no SKU `r{quantidade}`.
 
-O SKU de uma conta é `a{índice do jogo}-{nível de 1 a 5}`. O texto de cada conta fica em `lib/account-lore.ts`.
+O SKU de uma conta é `a{índice do jogo}-{nível de 1 a 5}`. O texto de cada conta fica em `lib/account-lore.json`.
 
 ## Checkout
 

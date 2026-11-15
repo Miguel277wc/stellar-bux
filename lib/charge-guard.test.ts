@@ -2,25 +2,26 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { assertCheckoutAmount, assertCheckoutOrder, CheckoutRejected, createChargeWindow } from "./charge-guard";
 
-test("só aceita um pacote da loja, com quantidade 1", () => {
-  assert.doesNotThrow(() => assertCheckoutOrder([{ sku: "r600", quantity: 1 }]));
-  assert.throws(() => assertCheckoutOrder([{ sku: "r600", quantity: 40 }]), CheckoutRejected);
-  assert.throws(() => assertCheckoutOrder([{ sku: "r1000", quantity: 1 }]), CheckoutRejected);
-  assert.throws(
-    () =>
-      assertCheckoutOrder([
-        { sku: "r600", quantity: 1 },
-        { sku: "r1200", quantity: 1 },
-      ]),
-    CheckoutRejected,
+test("aceita o catálogo da loja e recusa pacote antigo ou quantidade inválida", () => {
+  assert.doesNotThrow(() =>
+    assertCheckoutOrder([
+      { sku: "r600", quantity: 1 },
+      { sku: "r1200", quantity: 2 },
+      { sku: "iheadless", quantity: 1 },
+      { sku: "c20", quantity: 1 },
+      { sku: "a0-1", quantity: 1 },
+    ]),
   );
+  assert.throws(() => assertCheckoutOrder([{ sku: "r600", quantity: 40 }]), CheckoutRejected);
+  assert.throws(() => assertCheckoutOrder([{ sku: "r400", quantity: 1 }]), CheckoutRejected);
+  assert.throws(() => assertCheckoutOrder([{ sku: "iheadless", quantity: 2 }]), CheckoutRejected);
 });
 
-test("recusa valor abaixo de R$ 10 ou acima do maior pacote", () => {
+test("recusa valor abaixo de R$ 10", () => {
   assert.doesNotThrow(() => assertCheckoutAmount(1190));
-  assert.doesNotThrow(() => assertCheckoutAmount(6050));
+  assert.doesNotThrow(() => assertCheckoutAmount(990 + 1290));
   assert.throws(() => assertCheckoutAmount(999), CheckoutRejected);
-  assert.throws(() => assertCheckoutAmount(6051), CheckoutRejected);
+  assert.throws(() => assertCheckoutAmount(990), CheckoutRejected);
 });
 
 test("cada pessoa gera no máximo cinco cobranças por hora", () => {

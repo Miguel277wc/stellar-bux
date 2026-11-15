@@ -55,7 +55,6 @@ export async function chargePix(input: {
     description: input.description,
     reference: input.reference,
     customer: input.customer,
-    postbackUrl: process.env.FLEVOPAY_POSTBACK_URL?.trim() || undefined,
     productHash: process.env.FLEVOPAY_STORE_ID?.trim() || undefined,
   });
   const qrCode = charge.qrCode.startsWith("data:image")

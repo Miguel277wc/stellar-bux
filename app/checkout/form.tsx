@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState, type FormEvent } from "react";
-import { STORE_PACKS, quoteCheckout } from "@/lib/catalog";
+import { MIN_PIX_CENTS, quoteCheckout } from "@/lib/catalog";
+import { useCart } from "@/lib/use-cart";
 
 type PixResponse = {
   id?: string;
@@ -11,9 +13,9 @@ type PixResponse = {
 };
 
 const reais = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
-const PACKS = new Set<number>(STORE_PACKS);
 
-export function CheckoutForm({ robux, express }: { robux: number; express: boolean }) {
+export function CheckoutForm() {
+  const { cart, update } = useCart();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -25,8 +27,15 @@ export function CheckoutForm({ robux, express }: { robux: number; express: boole
   const [status, setStatus] = useState("pending");
   const [pix, setPix] = useState<PixResponse | null>(null);
 
-  const known = PACKS.has(robux);
-  const amountCents = known ? quoteCheckout([{ sku: `r${robux}`, quantity: 1 }], express).amountCents : 0;
+  const quote = cart.items.length
+    ? (() => {
+        try {
+          return quoteCheckout(cart.items, cart.express);
+        } catch {
+          return null;
+        }
+      })()
+    : null;
 
   useEffect(() => {
     if (!pix?.id) return;
@@ -47,6 +56,7 @@ export function CheckoutForm({ robux, express }: { robux: number; express: boole
 
   async function pay(event: FormEvent) {
     event.preventDefault();
+    if (!quote) return;
     setError("");
     setLoading(true);
     try {
@@ -54,8 +64,8 @@ export function CheckoutForm({ robux, express }: { robux: number; express: boole
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          items: [{ sku: `r${robux}`, quantity: 1 }],
-          express,
+          items: cart.items,
+          express: cart.express,
           customer: { name, email, phone, document, roblox_username: username },
         }),
       });
@@ -65,6 +75,7 @@ export function CheckoutForm({ robux, express }: { robux: number; express: boole
         return;
       }
       setPix(body);
+      update({ items: [], express: false });
     } catch {
       setError("O PIX não pode ser gerado.");
     } finally {
@@ -82,73 +93,63 @@ export function CheckoutForm({ robux, express }: { robux: number; express: boole
     }
   }
 
-  if (!known) {
-    return (
-      <main className="shop">
-        <p className="alert">Escolha um pacote na loja.</p>
-        <a href="/">Voltar</a>
-      </main>
-    );
-  }
-
   return (
-    <main className="shop">
-      <header className="shop-top">
-        <a className="brand" href="/">
-          Stellar Bux
-        </a>
-        <div className="secure">PIX FlevoPay</div>
-      </header>
-      <section className="card" style={{ maxWidth: 480, margin: "0 auto" }}>
+    <main className="mx-auto w-full max-w-xl flex-1 px-5 py-10">
+      <Link className="text-sm font-semibold text-muted-foreground" href="/">
+        Voltar para a loja
+      </Link>
+      <section className="glass mt-4 rounded-[18px] p-5">
         {pix?.qr_code ? (
-          <div className="pix-panel">
-            <h1>Pague o PIX</h1>
-            <p className="hint">{reais.format(amountCents / 100)}</p>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
+          <div className="grid justify-items-center gap-3 text-center">
+            <h1 className="neon-title text-2xl">Pague o PIX</h1>
             <img alt="QR Code do PIX" src={pix.qr_code} width={220} height={220} />
             {pix.copia_cola ? (
               <>
-                <textarea className="pix-code" readOnly value={pix.copia_cola} aria-label="Código Pix copia e cola" />
-                <button className="copy" type="button" onClick={() => void copyCode()}>
+                <textarea className="h-24 w-full rounded-xl border border-white/15 bg-transparent p-3 text-xs" readOnly value={pix.copia_cola} aria-label="Código Pix copia e cola" />
+                <button className="btn-glass w-full" type="button" onClick={() => void copyCode()}>
                   {copied ? "Código Pix copiado!" : "Copiar código Pix"}
                 </button>
               </>
             ) : null}
-            <p className={status === "approved" ? "done" : "wait"}>
-              {status === "approved" ? "Pagamento concluído!" : "Aguardando confirmação do pagamento..."}
-            </p>
+            <p className="font-semibold">{status === "approved" ? "Pagamento concluído!" : "Aguardando confirmação do pagamento..."}</p>
           </div>
         ) : (
-          <form className="form" onSubmit={pay}>
-            <h1>
-              {robux.toLocaleString("pt-BR")} Robux
-            </h1>
-            <p className="hint">
-              {reais.format(amountCents / 100)}
-              {express ? " com entrega expressa" : ""}
-            </p>
+          <form className="grid gap-3" onSubmit={pay}>
+            <h1 className="neon-title text-2xl">Pagamento</h1>
+            {!quote ? <p>Escolha um produto na loja.</p> : null}
+            {quote
+              ? quote.lines.map((line) => (
+                  <p key={line.sku} className="flex justify-between gap-3">
+                    <span>{line.quantity}× {line.name}</span>
+                    <span>{reais.format(line.amountCents / 100)}</span>
+                  </p>
+                ))
+              : null}
+            {quote?.express ? <p>Entrega expressa</p> : null}
+            {quote ? <p className="text-xl font-extrabold text-[#e9d5ff]">{reais.format(quote.amountCents / 100)}</p> : null}
+            {quote && quote.amountCents < MIN_PIX_CENTS ? <p>O PIX precisa de pelo menos R$ 10,00.</p> : null}
             <label>
               Nome completo
-              <input value={name} onChange={(event) => setName(event.target.value)} required placeholder="Nome e sobrenome" />
+              <input className="mt-1 h-11 w-full rounded-xl border border-white/15 bg-white/6 px-3" value={name} onChange={(event) => setName(event.target.value)} required placeholder="Nome e sobrenome" />
             </label>
             <label>
               E-mail
-              <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required placeholder="seu@email.com" />
+              <input className="mt-1 h-11 w-full rounded-xl border border-white/15 bg-white/6 px-3" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required placeholder="seu@email.com" />
             </label>
             <label>
               Celular
-              <input value={phone} onChange={(event) => setPhone(event.target.value)} required placeholder="11988887777" />
+              <input className="mt-1 h-11 w-full rounded-xl border border-white/15 bg-white/6 px-3" value={phone} onChange={(event) => setPhone(event.target.value)} required placeholder="11988887777" />
             </label>
             <label>
               CPF
-              <input value={document} onChange={(event) => setDocument(event.target.value)} required placeholder="000.000.000-00" />
+              <input className="mt-1 h-11 w-full rounded-xl border border-white/15 bg-white/6 px-3" value={document} onChange={(event) => setDocument(event.target.value)} required placeholder="000.000.000-00" />
             </label>
             <label>
               Usuário do Roblox
-              <input value={username} onChange={(event) => setUsername(event.target.value)} required placeholder="seu_usuario" />
+              <input className="mt-1 h-11 w-full rounded-xl border border-white/15 bg-white/6 px-3" value={username} onChange={(event) => setUsername(event.target.value)} required placeholder="seu_usuario" />
             </label>
-            {error ? <p className="alert" role="alert">{error}</p> : null}
-            <button className="pay" type="submit" disabled={loading}>
+            {error ? <p role="alert">{error}</p> : null}
+            <button className="btn-brand h-11 rounded-xl font-bold" type="submit" disabled={loading || !quote || quote.amountCents < MIN_PIX_CENTS}>
               {loading ? "Gerando PIX..." : "Gerar PIX"}
             </button>
           </form>
