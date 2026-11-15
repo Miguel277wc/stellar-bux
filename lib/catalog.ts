@@ -1,6 +1,8 @@
-export const ROBUX_CENTS_PER_THOUSAND = 790;
+export const ROBUX_STEP = 600;
+export const CENTS_PER_STEP = 1190;
 export const EXPRESS_DELIVERY_CENTS = 1290;
 export const MIN_PIX_CENTS = 1000;
+export const STORE_PACKS = [600, 1200, 1800, 2400] as const;
 export const PIX_DESCRIPTION = "Pedido Stellar Bux";
 
 export type CheckoutItem = {
@@ -27,10 +29,10 @@ export function quoteRobuxSku(sku: string): number {
     throw new Error(`SKU desconhecido: ${sku}`);
   }
   const robux = Number(match[1]);
-  if (!Number.isInteger(robux) || robux <= 0) {
+  if (!Number.isInteger(robux) || robux <= 0 || robux % ROBUX_STEP !== 0) {
     throw new Error(`SKU desconhecido: ${sku}`);
   }
-  return Math.round((robux / 1000) * ROBUX_CENTS_PER_THOUSAND);
+  return (robux / ROBUX_STEP) * CENTS_PER_STEP;
 }
 
 export function quoteCheckout(items: CheckoutItem[], express = false): Quote {

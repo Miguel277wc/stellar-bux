@@ -1,9 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { quoteCheckout } from "@/lib/catalog";
-
-const PACKS = [1000, 2500, 5000, 10000];
+import { STORE_PACKS, quoteCheckout } from "@/lib/catalog";
 
 const reais = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -17,14 +15,14 @@ export default function HomePage() {
           <p className="eyebrow">Stellar Bux</p>
           <h1>Robux</h1>
         </div>
-        <p className="store-note">R$ 7,90 a cada 1.000 Robux. PIX a partir de R$ 10,00.</p>
+        <p className="store-note">600 Robux por R$ 11,90</p>
       </header>
       <label className="express">
         <input type="checkbox" checked={express} onChange={(event) => setExpress(event.target.checked)} />
         Entrega expressa por R$ 12,90
       </label>
       <section className="pack-grid">
-        {PACKS.map((robux) => {
+        {STORE_PACKS.map((robux) => {
           const quote = quoteCheckout([{ sku: `r${robux}`, quantity: 1 }], express);
           const href = `/checkout?robux=${robux}&express=${express ? "1" : "0"}`;
           return (

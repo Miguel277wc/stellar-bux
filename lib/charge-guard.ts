@@ -1,5 +1,10 @@
-export const CHECKOUT_SKUS = new Set(["r1000", "r2500", "r5000", "r10000"]);
-export const MAX_CHECKOUT_CENTS = 9190;
+import { STORE_PACKS, quoteCheckout } from "./catalog";
+
+export const CHECKOUT_SKUS = new Set(STORE_PACKS.map((robux) => `r${robux}`));
+export const MAX_CHECKOUT_CENTS = quoteCheckout(
+  [{ sku: `r${STORE_PACKS[STORE_PACKS.length - 1]}`, quantity: 1 }],
+  true,
+).amountCents;
 export const MAX_CHARGES_PER_HOUR = 5;
 
 const HOUR_MS = 60 * 60 * 1000;

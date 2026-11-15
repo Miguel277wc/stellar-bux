@@ -18,7 +18,7 @@ npm run lint
 
 ## Catálogo
 
-O preço é R$ 7,90 a cada 1.000 Robux. A adquirente da FlevoPay só gera PIX a partir de R$ 10,00, então o pacote de 1.000 Robux sai a R$ 10,00. O PIX leva o pacote e, se o cliente escolher, a entrega expressa de R$ 12,90. Pacotes de Robux ficam em `lib/catalog.ts`, no SKU `r{quantidade}`. A loja não vende Caixa Bux.
+O preço é R$ 11,90 a cada 600 Robux. Os pacotes são 600, 1.200, 1.800 e 2.400 Robux. O PIX leva o pacote e, se o cliente escolher, a entrega expressa de R$ 12,90. Pacotes de Robux ficam em `lib/catalog.ts`, no SKU `r{quantidade}`. A loja não vende Caixa Bux.
 
 O SKU de uma conta é `a{índice do jogo}-{nível de 1 a 5}`. O texto de cada conta fica em `lib/account-lore.ts`.
 
@@ -28,7 +28,7 @@ A página inicial mostra os pacotes de Robux. O botão abre `/checkout`, e `POST
 
 ```json
 {
-  "items": [{ "sku": "r1000", "quantity": 1 }],
+  "items": [{ "sku": "r600", "quantity": 1 }],
   "customer": {
     "name": "Ana Silva",
     "email": "ana@email.com",
@@ -39,6 +39,6 @@ A página inicial mostra os pacotes de Robux. O botão abre `/checkout`, e `POST
 }
 ```
 
-O cliente informa nome e sobrenome, e-mail, telefone com DDD, CPF e usuário do Roblox. A descrição do PIX é o pacote, por exemplo `1000 Robux`. A resposta traz `qr_code` e o copia e cola. O pedido fica pendente até a FlevoPay marcar `approved`. A consulta `GET /api/pagamento/status?id=` devolve só o estado. O webhook `POST /api/webhooks/flevopay` confirma esse estado na API antes de aceitar o aviso.
+O cliente informa nome e sobrenome, e-mail, telefone com DDD, CPF e usuário do Roblox. A descrição do PIX é o pacote, por exemplo `600 Robux`. A resposta traz `qr_code` e o copia e cola. O pedido fica pendente até a FlevoPay marcar `approved`. A consulta `GET /api/pagamento/status?id=` devolve só o estado. O webhook `POST /api/webhooks/flevopay` confirma esse estado na API antes de aceitar o aviso.
 
 `FLEVOPAY_API_KEY` fica só no servidor. Sem ela, o checkout responde que o PIX não pode ser gerado.

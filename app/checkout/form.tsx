@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
-import { quoteCheckout } from "@/lib/catalog";
+import { STORE_PACKS, quoteCheckout } from "@/lib/catalog";
 
 type PixResponse = {
   id?: string;
@@ -11,7 +11,7 @@ type PixResponse = {
 };
 
 const reais = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
-const PACKS = new Set([1000, 2500, 5000, 10000]);
+const PACKS = new Set<number>(STORE_PACKS);
 
 export function CheckoutForm({ robux, express }: { robux: number; express: boolean }) {
   const [name, setName] = useState("");
