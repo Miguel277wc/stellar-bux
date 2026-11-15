@@ -399,7 +399,7 @@ export function StoreHome() {
       {drawer ? (
         <div className="fixed inset-0 z-50" style={{ background: "rgba(0,0,0,.62)" }}>
           <button type="button" aria-label="Fechar carrinho" className="absolute inset-0" onClick={() => setDrawer(false)} />
-          <aside className="glass absolute top-0 right-0 flex h-full w-full max-w-md flex-col gap-4 overflow-auto p-5">
+          <aside className="absolute top-0 right-0 flex h-full w-full max-w-md flex-col gap-4 overflow-auto border-l border-white/10 p-5" style={{ background: "#0c0618" }}>
             <div className="flex items-center justify-between">
               <h2 className="neon-title text-2xl">Carrinho</h2>
               <button type="button" className="btn-glass" onClick={() => setDrawer(false)}>Fechar</button>
@@ -419,7 +419,7 @@ export function StoreHome() {
                   ) : (
                     <input
                       aria-label={`Quantidade de ${product.name}`}
-                      className="h-10 w-16 rounded-lg border border-white/15 bg-transparent text-center"
+                      className="h-10 w-16 shrink-0 rounded-lg border border-white/15 bg-[#12081f] text-center"
                       type="number"
                       min={1}
                       max={20}
@@ -430,6 +430,26 @@ export function StoreHome() {
                 </div>
               );
             })}
+            <div>
+              <h3 className="neon-title neon-title-sm text-lg">Ofertas</h3>
+              <div className="mt-3 grid gap-2">
+                {ITEM_OFFERS.map((offer) => {
+                  const inCart = cart.items.some((item) => item.sku === offer.sku);
+                  return (
+                    <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-2" key={offer.sku}>
+                      <img alt="" className={`h-14 w-14 shrink-0 rounded-xl object-contain offer-frame ${FRAMES[offer.sku] ?? ""}`} src={offer.image} />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-bold">{offer.name}</p>
+                        <p className="text-sm text-[#e9d5ff]">{money(offer.amountCents)}</p>
+                      </div>
+                      <button type="button" className="btn-glass shrink-0 px-3" disabled={inCart} onClick={() => buy(offer.sku)}>
+                        {inCart ? "No carrinho" : "Adquirir"}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
             <label className="flex items-center gap-2 font-semibold">
               <input type="checkbox" checked={cart.express} onChange={(event) => update({ ...cart, express: event.target.checked })} />
               Entrega expressa por {money(EXPRESS_DELIVERY_CENTS)}
