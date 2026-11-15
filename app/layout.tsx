@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "../public/store.css";
+import "./type.css";
 
 export const metadata: Metadata = {
   title: "Stellar Bux",
