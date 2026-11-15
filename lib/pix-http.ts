@@ -8,7 +8,7 @@ const GENERIC_FLEVO_ERROR =
 
 export function explainFlevoFailure(message: string): string {
   if (message.trim() === GENERIC_FLEVO_ERROR) {
-    return "A FlevoPay não gerou o PIX. Confira nome e sobrenome, CPF válido e celular com DDD. Se os dados já estão certos, a adquirente da loja recusou a cobrança.";
+    return "A FlevoPay não gerou o PIX. A adquirente só aceita cobrança a partir de R$ 10,00, com nome e sobrenome, CPF válido e celular com DDD.";
   }
   return message;
 }

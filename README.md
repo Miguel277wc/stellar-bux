@@ -18,7 +18,7 @@ npm run lint
 
 ## Catálogo
 
-O preço é R$ 7,90 a cada 1.000 Robux. O PIX da FlevoPay leva o pacote e, se o cliente escolher, a entrega expressa de R$ 12,90. Pacotes de Robux ficam em `lib/catalog.ts`, no SKU `r{quantidade}`. A loja não vende Caixa Bux.
+O preço é R$ 7,90 a cada 1.000 Robux. A adquirente da FlevoPay só gera PIX a partir de R$ 10,00, então o pacote de 1.000 Robux sai a R$ 10,00. O PIX leva o pacote e, se o cliente escolher, a entrega expressa de R$ 12,90. Pacotes de Robux ficam em `lib/catalog.ts`, no SKU `r{quantidade}`. A loja não vende Caixa Bux.
 
 O SKU de uma conta é `a{índice do jogo}-{nível de 1 a 5}`. O texto de cada conta fica em `lib/account-lore.ts`.
 

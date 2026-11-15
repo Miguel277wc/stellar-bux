@@ -17,7 +17,7 @@ export default function HomePage() {
           <p className="eyebrow">Stellar Bux</p>
           <h1>Robux</h1>
         </div>
-        <p className="store-note">R$ 7,90 a cada 1.000 Robux</p>
+        <p className="store-note">R$ 7,90 a cada 1.000 Robux. PIX a partir de R$ 10,00.</p>
       </header>
       <label className="express">
         <input type="checkbox" checked={express} onChange={(event) => setExpress(event.target.checked)} />

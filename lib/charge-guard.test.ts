@@ -16,9 +16,10 @@ test("só aceita um pacote da loja, com quantidade 1", () => {
   );
 });
 
-test("recusa valor abaixo de R$ 6 ou acima do maior pacote", () => {
+test("recusa valor abaixo de R$ 10 ou acima do maior pacote", () => {
+  assert.doesNotThrow(() => assertCheckoutAmount(1000));
   assert.doesNotThrow(() => assertCheckoutAmount(9190));
-  assert.throws(() => assertCheckoutAmount(599), CheckoutRejected);
+  assert.throws(() => assertCheckoutAmount(999), CheckoutRejected);
   assert.throws(() => assertCheckoutAmount(9191), CheckoutRejected);
 });
 

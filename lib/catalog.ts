@@ -1,5 +1,6 @@
 export const ROBUX_CENTS_PER_THOUSAND = 790;
 export const EXPRESS_DELIVERY_CENTS = 1290;
+export const MIN_PIX_CENTS = 1000;
 export const PIX_DESCRIPTION = "Pedido Stellar Bux";
 
 export type CheckoutItem = {
@@ -47,7 +48,8 @@ export function quoteCheckout(items: CheckoutItem[], express = false): Quote {
   });
 
   const products = lines.reduce((sum, line) => sum + line.amountCents, 0);
-  const amountCents = products + (express ? EXPRESS_DELIVERY_CENTS : 0);
+  const rawCents = products + (express ? EXPRESS_DELIVERY_CENTS : 0);
+  const amountCents = rawCents > 0 && rawCents < MIN_PIX_CENTS ? MIN_PIX_CENTS : rawCents;
   return {
     amountCents,
     description: PIX_DESCRIPTION,

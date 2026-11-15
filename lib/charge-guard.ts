@@ -25,7 +25,7 @@ export function assertCheckoutOrder(items: Array<{ sku?: string; quantity?: numb
 }
 
 export function assertCheckoutAmount(amountCents: number) {
-  if (!Number.isInteger(amountCents) || amountCents < 600 || amountCents > MAX_CHECKOUT_CENTS) {
+  if (!Number.isInteger(amountCents) || amountCents < 1000 || amountCents > MAX_CHECKOUT_CENTS) {
     throw new CheckoutRejected("O valor do pedido está fora do limite da loja.");
   }
 }
