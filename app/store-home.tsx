@@ -398,7 +398,17 @@ export function StoreHome() {
           <Link className="hover:text-foreground" href="/#giftcards">Gift Cards</Link>
           <Link className="hover:text-foreground" href="/#faq">Dúvidas</Link>
         </nav>
-        <p>© Stellar Bux · Todos os direitos reservados.</p>
+        <p>
+          Loja oficial:{" "}
+          <a className="font-bold text-[#e9d5ff] hover:underline" href="https://stellarbux.netlify.app">
+            stellarbux.netlify.app
+          </a>
+          <span className="mx-2 opacity-40">·</span>
+          © Stellar Bux
+        </p>
+        <p className="mx-auto mt-2 max-w-xl text-[11px] leading-relaxed opacity-80">
+          Não use <strong className="font-bold">stellarbux.com</strong> — esse domínio não é nosso e pode abrir páginas de terceiros.
+        </p>
         <p className="mx-auto mt-2 max-w-2xl text-xs leading-relaxed">
           Stellar Bux é uma loja independente e não é afiliada, associada nem endossada pela Roblox Corporation. Roblox e Robux são marcas da Roblox Corporation.
         </p>

@@ -1,5 +1,7 @@
 # Galaxy Bux
 
+Loja oficial em produção: **https://stellarbux.netlify.app** (não use `stellarbux.com` — é domínio estacionado de terceiros).
+
 Loja da Galaxy Bux: pacotes de Robux, gift cards e contas de jogos. O visual segue o tema espacial da página original, com carrinho persistente, busca de jogos e checkout que recalcula o preço no servidor.
 
 ## Rodar localmente
