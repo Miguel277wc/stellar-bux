@@ -1,0 +1,97 @@
+@font-face {
+  font-family: Fredoka;
+  src: url("/fonts/fredoka-500.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: Fredoka;
+  src: url("/fonts/fredoka-600.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: Fredoka;
+  src: url("/fonts/fredoka-700.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: Fredoka;
+  src: url("/fonts/fredoka-700.woff2") format("woff2");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+html {
+  --default-font-family: Fredoka, Poppins, ui-sans-serif, system-ui, sans-serif;
+  --font-poppins: Fredoka, Poppins, sans-serif;
+  font-family: Fredoka, Poppins, ui-sans-serif, system-ui, sans-serif;
+  font-size: 18px;
+}
+
+body,
+button,
+input,
+textarea,
+select {
+  font-family: Fredoka, Poppins, ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.neon-title,
+h1,
+h2,
+h3,
+.btn-brand,
+.btn-glass {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.text-\[15px\] {
+  font-size: 17px;
+}
+
+.text-sm {
+  font-size: 1.05rem;
+}
+
+.text-xs {
+  font-size: 0.95rem;
+}
+
+.cart-scroll {
+  overflow-y: scroll;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
+  scrollbar-width: auto;
+  scrollbar-color: #c084fc #241433;
+}
+
+.cart-scroll::-webkit-scrollbar {
+  width: 12px;
+}
+
+.cart-scroll::-webkit-scrollbar-track {
+  background: #241433;
+  border-radius: 999px;
+}
+
+.cart-scroll::-webkit-scrollbar-thumb {
+  background: #c084fc;
+  border: 2px solid #241433;
+  border-radius: 999px;
+}
